@@ -1,0 +1,3 @@
+/media/psf/Home/OneDrive/programs/specialCourse/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/media/psf/Home/OneDrive/programs/specialCourse/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/psf/Home/OneDrive/programs/specialCourse/cmake-build-debug/CMakeFiles/specialCourse.dir
