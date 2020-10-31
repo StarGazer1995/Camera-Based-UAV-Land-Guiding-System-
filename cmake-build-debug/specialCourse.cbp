@@ -5,7 +5,7 @@
 		<Option title="specialCourse"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\cmake\opencv4\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\cmake\opencv4\;CMake Files\..\..\..\..\..\..\usr\local\share\;CMake Files\..\..\..\..\..\..\usr\local\share\aruco\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/media/psf/Home/OneDrive/programs/specialCourse/cmake-build-debug"/>
@@ -44,6 +44,7 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
+					<Add directory="/usr/local/include/aruco"/>
 					<Add directory="/usr/local/opencv4/include/opencv4"/>
 					<Add directory="/usr/include/c++/7"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
@@ -68,6 +69,7 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
+					<Add directory="/usr/local/include/aruco"/>
 					<Add directory="/usr/local/opencv4/include/opencv4"/>
 					<Add directory="/usr/include/c++/7"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
@@ -89,6 +91,12 @@
 		<Unit filename="/media/psf/Home/OneDrive/programs/specialCourse/cpp/headers/CalPhoto.h">
 			<Option target="specialCourse"/>
 		</Unit>
+		<Unit filename="/media/psf/Home/OneDrive/programs/specialCourse/cpp/headers/Calibration.h">
+			<Option target="specialCourse"/>
+		</Unit>
+		<Unit filename="/media/psf/Home/OneDrive/programs/specialCourse/cpp/headers/parameters.h">
+			<Option target="specialCourse"/>
+		</Unit>
 		<Unit filename="/media/psf/Home/OneDrive/programs/specialCourse/cpp/src/main.cpp">
 			<Option target="specialCourse"/>
 		</Unit>
@@ -106,6 +114,9 @@
 		</Unit>
 		<Unit filename="/media/psf/Home/OneDrive/programs/specialCourse/../../../../../../usr/local/opencv4/lib/cmake/opencv4/OpenCVModules.cmake">
 			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\opencv4\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/psf/Home/OneDrive/programs/specialCourse/../../../../../../usr/local/share/aruco/arucoConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\share\aruco\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>

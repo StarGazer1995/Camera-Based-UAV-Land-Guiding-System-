@@ -10,6 +10,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <cmath>
+#include "parameters.h"
 
 using namespace std;
 using namespace cv;
@@ -23,16 +24,28 @@ class CalPhoto{
             }
             Mat Img;
             capture >> Img;
-            Mat Img_with_marker = circuitDetection(Img);
-            RotatedRect marker = circuit(Img);
+            Mat img;
+            recoverImage(Img,img);
+            Img.release();
+            RotatedRect marker = circuit(img);
+
             cout<<"Land place is fould"<<endl;
-            cout<<"The center if the place is: "<< marker.center<<endl;
+            cout<<"The center of the place is: "<< marker.center<<endl;
             cout<<"The area if the place is: "<< M_1_PI * marker.size.height * marker.size.width<<endl;
             cout<<"The hight of the camera is: "<<endl; //TODO: I need to calculate it out.
+
             //marker.center TODO:
 
         }
 
+        void mean(vector<cv::Mat> &input){
+            Mat mask(input[0].rows,input[0].cols,input[0].channels(),Scalar((double)1/input.size()));
+            cv::multiply(input[0],mask,input[0]);
+        }
+
+        void recoverImage(Mat &raw,Mat &recovered){
+            cv::undistort(raw,recovered,cameraMatrix,distCoffe);
+        }
         float DisCalculate(Mat &img){
             float dis=0.0;
             return dis;
@@ -65,6 +78,8 @@ class CalPhoto{
         RotatedRect circuit(Mat img){
             Mat gray_img;
             cv::Size2i kernel_size={5,5};
+
+            /*Edge detection*/
             cv::cvtColor(img,gray_img,cv::COLOR_RGB2GRAY);
             cv::GaussianBlur(gray_img,gray_img,kernel_size,0);
             Mat edge;
@@ -72,6 +87,7 @@ class CalPhoto{
             vector<vector<int>> contours;
             Mat hierarchy;
             cv::findContours(edge,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
+
             double area_temp=0.0;
             RotatedRect ans;
             for(auto i:contours){
@@ -79,6 +95,7 @@ class CalPhoto{
                     double area = cv::contourArea(i);
                     cv::RotatedRect ell = cv::fitEllipse(i);
                     cv::Size2d size = ell.size;
+                    /*Calculate the area of the circle*/
                     double area2 = M_1_PI * size.height * size.width;
                     if(area2/area>0.2){
                         if(area==max(area,area_temp))
@@ -88,4 +105,9 @@ class CalPhoto{
             }
             return ans;
     }
+
+    vector<vector<cv::OutputArray>> location(Mat img){
+
+        }
 };
+
