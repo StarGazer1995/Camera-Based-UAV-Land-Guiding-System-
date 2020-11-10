@@ -18,7 +18,7 @@ using namespace cv;
 
 class Calibration{
 public:
-    void CameraCalibration(const char infilepath[],const char outfilepath[]){
+    void CameraCalibration(const string infilepath,const string outfilepath){
         /*
          * infilepath: path of images for calibration
          * outfilepath: path of calibration matrix
@@ -34,7 +34,7 @@ public:
         vector<vector<cv::Point3f>> object_point;
         Mat img;
         /* define the size of checkboard*/
-        int CHECHBOARD[2]{6,9};
+        int CHECHBOARD[2]{9,6};
         string filename;
         vector<string> filenames;
         for(int i=0;i<CHECHBOARD[1];i++){
@@ -42,8 +42,11 @@ public:
                 objp.push_back(cv::Point3f(j,i,0));
             }
         }
+
         while(std::getline(fin,filename)){
             image_cnt++;
+            int len = filename.size();
+            filename.replace(filename.begin()+len-1,filename.end(),"");
             img = imread(filename);
             filenames.push_back(filename);
             /*get the width and height of the 1st picture*/
@@ -53,10 +56,12 @@ public:
             }
 
             /*trying to find the corner points*/
-            if(cv::findChessboardCorners(img,board_size,corners)){
+            bool findChess = cv::findChessboardCorners(img,cv::Size(CHECHBOARD[0],CHECHBOARD[1]),corners);
+            if(!findChess){
 
-                cout<<"Cannot find any Chessboard";
-                exit(1);
+                continue;
+                //cout<<"Cannot find any Chessboard";
+                //exit(1);
             }
             else{
                 Mat view_gray;
@@ -73,14 +78,15 @@ public:
             }
 
         }
-        cv::Mat cameraMatrix,distCoff,RotationMatrix,VectorTranscationMatrix;
-        cv::calibrateCamera(object_point,image_points_seq,cv::Size(img.cols,img.rows),cameraMatrix,distCoff,RotationMatrix,VectorTranscationMatrix);
+        cv::Mat cameraMatrix,distCoff;
+        vector<cv::Mat> RotationMatrix,VectorTranscationMatrix;
+        cv::calibrateCamera(object_point,image_points_seq,img.size(),cameraMatrix,distCoff,RotationMatrix,VectorTranscationMatrix);
 
         /*Write Calibration matrices*/
-        f<<"cameraMatrix: "<<"{"<<cameraMatrix<<"}/n";
-        f<<"distCoff: "<<"{"<<distCoff<<"}/n";
-        f<<"RotationMatrix: "<<"{"<<RotationMatrix<<"}/n";
-        f<<"VectorTranscationMatrix: "<<"{"<<VectorTranscationMatrix<<"}/n";
+        cv::write(f,"cameraMatrix",cameraMatrix);
+        cv::write(f,"distCoff",distCoff);
+        cv::write(f,"Rotation",RotationMatrix);
+        cv::write(f,"VectorTranscationMatrix",VectorTranscationMatrix);
         f.release();
         return;
 
