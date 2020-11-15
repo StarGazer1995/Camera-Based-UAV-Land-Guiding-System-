@@ -85,11 +85,14 @@ public:
         /*Write Calibration matrices*/
         cv::write(f,"cameraMatrix",cameraMatrix);
         cv::write(f,"distCoff",distCoff);
-        cv::write(f,"Rotation",RotationMatrix);
-        cv::write(f,"VectorTranscationMatrix",VectorTranscationMatrix);
         f.release();
+
+        cout<< "The internal matrix of the camera is\n";
+        cout<< cameraMatrix<<endl;
+        cout<< "The external matrix of the camera is\n";
+        cout<< distCoff<<endl;
+
         return;
 
     }
-
 };

@@ -2,19 +2,39 @@
 #include<opencv2/opencv.hpp>
 #include "../headers/CalPhoto.h"
 #include "../headers/Calibration.h"
-#include "../headers/parameters.h"
 #include <aruco/aruco.h>
-#include <algorithm>
-
+#include<math.h>
 using namespace std;
 
 void init(){
-    char imgList[] = "../img/list.txt";
-    char caliParameter[] = "./cali.yml";
+    string imgList = "../cali/list.txt";
+    string caliParameter = "../cali/cali.yml";
     Calibration cal;
     cal.CameraCalibration(imgList,caliParameter);
 }
-
+void rotationEstimate(cv::Mat &Rvet,double &x,double &y,double &z){
+    auto deg = Rvet.at<double>(0,2);
+    cv::Mat R(3,3,Rvet.type());
+    cv::Rodrigues(Rvet,R);
+    double sy = sqrt(R.at<double>(0,0)*R.at<double>(0,0)+R.at<double>(1,0)*R.at<double>(1,0));
+    if(!(sy<0.000001)){
+        x = atan2(R.at<double>(2,1),R.at<double>(2,2));
+        y = atan2(-R.at<double>(2,0),sy);
+        z = atan2(R.at<double>(1,0),R.at<double>(0,0));
+    }else{
+        x = atan2(-R.at<double>(1,2),R.at<double>(1,1));
+        y = atan2(R.at<double>(2,0),sy);
+        z = 0.0;
+    }
+    x = x * 180.0/M_PI;
+    y = y * 180.0/M_PI;
+    z = z * 180.0/M_PI;
+    return;
+}
+void distanceEstimate(cv::Mat &Tvec,double &distance){
+    distance= ((Tvec.at<double>(0,0,2)+0.02)*0.0254)*100;
+    return;
+}
 
 int main() {
     /*
@@ -38,16 +58,18 @@ int main() {
     /*
      * Read the parameters for distortion
      */
-    configFile["cameraMatrix"] >> cameraMatrix;
-    configFile["distCoff"] >> distCoffe;
+    const cv::Mat cameraMatrix = configFile["cameraMatrix"].mat();
+    const cv::Mat distCoff = configFile["distCoff"].mat();
+    configFile.release();
     aruco::CameraParameters cameraParameters;
     cameraParameters.CameraMatrix = cameraMatrix;
-    cameraParameters.Distorsion = distCoffe;
-    configFile.release();
+    cameraParameters.Distorsion = distCoff;
     /*
-     * Initializing Camera
+     * Parameter setup
      */
     CalPhoto calPhoto;
+    calPhoto.cameraMatrix = cameraMatrix;
+    calPhoto.distCoff = distCoff;
     calPhoto.Init(capture);
     cv::Mat img;
     cv::Mat QRcode;
@@ -78,8 +100,11 @@ int main() {
                 cv::accumulate(Rvec[i],Rvec[0]);
                 cv::accumulate(Tvec[i],Tvec[0]);
             }
-            CalPhoto().mean(Rvec);
-            CalPhoto().mean(Tvec);
+            CalPhoto().mean(Rvec); //pose estimating, get rotation matrix
+            CalPhoto().mean(Tvec); //pose estimating, get transpose matrix
+            double x=0.0,y=0.0,z=0.0,distance=0.0;
+            rotationEstimate(Rvec[0],x,y,z);
+            distanceEstimate(Tvec[0],distance);
         }
     }
     return 0;

@@ -10,13 +10,14 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <cmath>
-#include "parameters.h"
 
 using namespace std;
 using namespace cv;
 
 class CalPhoto{
     public:
+        Mat cameraMatrix;
+        Mat distCoff;
         void Init(VideoCapture capture) {
             if (!capture.isOpened()) {
                 cerr << "the Camera is not opened!" << endl;
@@ -24,10 +25,10 @@ class CalPhoto{
             }
             Mat Img;
             capture >> Img;
-            Mat img;
-            recoverImage(Img,img);
+            Mat dst;
+            recoverImage(Img,dst);
             Img.release();
-            RotatedRect marker = circuit(img);
+            RotatedRect marker = circuit(dst);
 
             cout<<"Land place is fould"<<endl;
             cout<<"The center of the place is: "<< marker.center<<endl;
@@ -44,38 +45,11 @@ class CalPhoto{
         }
 
         void recoverImage(Mat &raw,Mat &recovered){
-            cv::undistort(raw,recovered,cameraMatrix,distCoffe);
-        }
-        float DisCalculate(Mat &img){
-            float dis=0.0;
-            return dis;
+            cv::undistort(raw,recovered,this->cameraMatrix,this->distCoff);
         }
 
     private:
-        Mat circuitDetection(Mat img){
-            Mat gray_img;
-            cv::Size2i kernel_size={5,5};
-            cv::cvtColor(img,gray_img,cv::COLOR_RGB2GRAY);
-            cv::GaussianBlur(gray_img,gray_img,kernel_size,0);
-            Mat edge;
-            cv::Canny(gray_img,edge,35,125);
-            vector<vector<int>> contours;
-            Mat hierarchy;
-            cv::findContours(edge,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
-            for(auto i:contours){
-                if(i.size()>50){
-                    double area = cv::contourArea(i);
-                    cv::RotatedRect ell = cv::fitEllipse(i);
-                    cv::Size2d size = ell.size;
-                    double area2 = M_1_PI * size.height * size.width;
-                    if(area2/area>0.2){
-                        cv::ellipse(img,ell,{0,255,0});
-                    }
-                }
-            }
-            return img;
-        }
-        RotatedRect circuit(Mat img){
+        RotatedRect circuit(Mat &img){
             Mat gray_img;
             cv::Size2i kernel_size={5,5};
 
@@ -83,11 +57,11 @@ class CalPhoto{
             cv::cvtColor(img,gray_img,cv::COLOR_RGB2GRAY);
             cv::GaussianBlur(gray_img,gray_img,kernel_size,0);
             Mat edge;
-            cv::Canny(gray_img,edge,35,125);
+            cv::Canny(gray_img,edge,35,125);//TODO:Fine tuning
             vector<vector<int>> contours;
             Mat hierarchy;
             cv::findContours(edge,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
-
+            /* find ellipse */
             double area_temp=0.0;
             RotatedRect ans;
             for(auto i:contours){
@@ -105,9 +79,5 @@ class CalPhoto{
             }
             return ans;
     }
-
-    vector<vector<cv::OutputArray>> location(Mat img){
-
-        }
 };
 
