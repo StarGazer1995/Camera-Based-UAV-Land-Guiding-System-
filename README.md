@@ -1,38 +1,18 @@
-# Project Discription
+# Project Description
 
-This project is a special course offered to the author. The project is mainly about the Computer Vision. The whole project is to develop a camera based landing guidance system for drones. It assembled by mainly 3 parts:**Calibration, Object Detection, and Post Estimation. **
+This project is a special course offered to the author. The project is mainly about the Computer Vision. The whole project is to develop a camera based landing guidance system for drones. It assembled by mainly 3 parts: **Calibration, Object Detection(QR code), and Post Estimation(ArUco code). **
 
-## Calibration 
+If I passed the assessment, I will upload a copy of my report.
 
-The camera used in the system is a stero camera designed for the raspberry pi, which does not provide the intrinsic matrix and distortion coefficient matrix.
+## RUNNING REQUIREMENTS
 
-## Object Detection 
+| name                   | requirements                                    |
+| ---------------------- | ----------------------------------------------- |
+| Running System         | Linux(debug on Ubuntu, running on Raspberry OS) |
+| Programming language   | C++ std11                                       |
+| Compiler requirement   | cmake 3.13 or above                             |
+| Opencv version         | 4.3.0                                           |
+| Opencv contrib version | 4.3.0                                           |
+| ArUco Code             | Automatic generated                             |
+| QR code                | Could be readable                               |
 
-### Land mark detection and measure
-
-
-
-### Target[ QR code] measure
-
-We use the similar theorem to measure the discance of the target. The equation could be written down like the following
-$$
-F = \frac{P*D}{W}
-$$
-Where F stands for the focal length of the camera, D is the distance between a specific object and the camera, P stands for the width( in pixel) of the Object, and W counts for the actual width of the object.
-
-We could calculate the distance between the object and the camera if we know the Focal Length, the with in pixel and in actual of the object. So, the equation could be written like the following:
-$$
-D = \frac{F*W}{P}
-$$
-
-## Postion Estimation
-
-Pose estimation plays a very important role in the computer vision field. It serves for Robot navigation, Argumented Reality, and etc. Since we are navigating a drone to land on a specific place, a pose estimation is needed. After the identification of the drone, we will start to process estimating the pose of it. In this section, we will use ARUCO markers to do the job. 
-
-ARUCO markers are markers that contain pose information. By scanning these markers, the pose of the drone could thus be estimated.
-
-### Mathmatics Theorem
-
-Flying target has six free domains, pitch, row, and yaw. These six domains count of three rotations in xyz axises. Since the QR code ,embeded on a drone, is a square, the opsition of the drone could be calculated out by mearsuring the difference between the width and height of the mark in pixel.
-
-To estimate the pose of an object within a signal image. PNP method is employed in this project. The classic form of PNP problem is to determine the 6D DoF 
