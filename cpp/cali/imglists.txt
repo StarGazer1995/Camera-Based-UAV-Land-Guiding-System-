@@ -11,9 +11,3 @@
 ../cali/11.jpg
 ../cali/12.jpg
 ../cali/13.jpg
-../cali/14.jpg
-../cali/15.jpg
-../cali/16.jpg
-../cali/17.jpg
-../cali/18.jpg
-../cali/19.jpg
