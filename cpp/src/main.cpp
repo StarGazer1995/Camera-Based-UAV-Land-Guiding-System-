@@ -1,20 +1,28 @@
 #include <iostream>
 #include<opencv2/opencv.hpp>
+#include<opencv2/aruco.hpp>
 #include "../headers/CalPhoto.h"
 #include "../headers/Calibration.h"
-#include <aruco/aruco.h>
+#include "../headers/parameters.h"
+#include<ctime>
 #include<math.h>
 using namespace std;
 
 void init(){
-    string imgList = "../cali/list.txt";
+    string imgList = "../cali/imglists.txt";
     string caliParameter = "../cali/cali.yml";
     Calibration cal;
     cal.CameraCalibration(imgList,caliParameter);
 }
-void rotationEstimate(cv::Mat &Rvet,double &x,double &y,double &z){
-    auto deg = Rvet.at<double>(0,2);
-    cv::Mat R(3,3,Rvet.type());
+static ostream& operator<<(ostream& out,MeasuredData &measuredData){
+    out<<"{"<<endl;
+    out<<"R"<<measuredData.R[0]<<",";
+    out<<"T"<<measuredData.T[0]<<"}";
+}
+
+void rotationEstimate(cv::Vec3d &Rvet,double &x,double &y,double &z){
+    auto deg = Rvet[2];
+    cv::Mat R(3,3,CV_16F);
     cv::Rodrigues(Rvet,R);
     double sy = sqrt(R.at<double>(0,0)*R.at<double>(0,0)+R.at<double>(1,0)*R.at<double>(1,0));
     if(!(sy<0.000001)){
@@ -31,8 +39,8 @@ void rotationEstimate(cv::Mat &Rvet,double &x,double &y,double &z){
     z = z * 180.0/M_PI;
     return;
 }
-void distanceEstimate(cv::Mat &Tvec,double &distance){
-    distance= ((Tvec.at<double>(0,0,2)+0.02)*0.0254)*100;
+void distanceEstimate(cv::Vec3d &Tvec,double &distance){
+    distance= Tvec[2];
     return;
 }
 
@@ -40,18 +48,19 @@ int main() {
     /*
      * Initialize the system
      */
-    cv::FileStorage configFile("./cali.yml",FileStorage::READ);
+    cv::FileStorage configFile("../cali/cali.yaml",FileStorage::READ);
+    cv::FileStorage data("./data.yaml",FileStorage::WRITE);
     cv::VideoCapture capture(0);
     if(configFile.isOpened()){
-        cout<<"The camera is calibrated"<<endl;
+        clog<<"The camera is calibrated"<<endl;
     }else{
-        cout<<"The camera is not calibrated/n";
-        cout<<"The camera is starting to be calibrated";
+        clog<<"The camera is not calibrated\n"<<endl;
+        clog<<"The camera is starting to be calibrated"<<endl;
         if(capture.isOpened()){
-            cout<<"Camera is connected, calibration begins";
+            clog<<"Camera is connected, calibration begins";
             init();
         }else{
-            cout<<"Please connect the camera and restart the program";
+            clog<<"Please connect the camera and restart the program";
             return -1;
         }
     }
@@ -61,50 +70,71 @@ int main() {
     const cv::Mat cameraMatrix = configFile["cameraMatrix"].mat();
     const cv::Mat distCoff = configFile["distCoff"].mat();
     configFile.release();
-    aruco::CameraParameters cameraParameters;
-    cameraParameters.CameraMatrix = cameraMatrix;
-    cameraParameters.Distorsion = distCoff;
     /*
      * Parameter setup
      */
     CalPhoto calPhoto;
     calPhoto.cameraMatrix = cameraMatrix;
     calPhoto.distCoff = distCoff;
-    calPhoto.Init(capture);
+    //calPhoto.Init(capture);
     cv::Mat img;
     cv::Mat QRcode;
     vector<string> decodeinfor;
     vector<vector<cv::Point2f>> corners;
-    vector<aruco::Marker> markers;
-    aruco::MarkerDetector detector;
-    aruco::MarkerPoseTracker estimator;
-    vector<cv::Mat> Tvec;
-    vector<cv::Mat> Rvec;
+    vector<cv::Mat> cornera;
+    vector<int> ids;
+    MeasuredData MeasuredData;
+    Ptr<cv::aruco::Dictionary> dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    /*
+     * Define the landing area
+     */
+    clog<<"Do you want to define the landing area(default area is set to the center of the image)[yes/no]"<<endl;
+    string ans ="";
+    while(ans!="yes"||ans!="no"){
+        cin>>ans;
+    }
+    if(ans=="yes")
+        clog<<"use the Default Setting"<<endl;
+    else{
+        clog<<"Starting to find a place to land"<<endl;
+        calPhoto.Init(capture);
+    }
     /*
      * Starting to detect QR code for identification
      */
     while(!capture.getExceptionMode()){
         capture >> img;
-        if(!QRCodeDetector().detect(img,QRcode)){// if QR code is not identified: detection continue
-            cameraParameters.CamSize = img.size();
+        cv::imshow("raw",img);
+        cv::waitKey(30);
+        string msg = QRCodeDetector().detectAndDecode(img,QRcode);
+        if(msg ==""){// if QR code is not identified: detection continue
             continue;
-        }
-        markers = detector.detect(img);//Starting to detect the aruco code
-        if(!markers.empty()){//if detection is work
-            for(int i = 0; i<markers.size();i++) {
-                estimator.estimatePose(markers[0], cameraParameters, 0.01);//The 3rd parameter needs to be changed
-                Rvec.push_back(estimator.getRvec());
-                Tvec.push_back(estimator.getTvec());
+        }else{
+            clog<<"the message is:\n"<<"\t"<<msg<<endl;
+            cv::aruco::detectMarkers(img,dict,corners,ids);//Starting to detect the aruco code
+            if(!ids.empty()){//if detection is work
+                cv::aruco::estimatePoseSingleMarkers(corners,20,cameraMatrix,distCoff,MeasuredData.R,MeasuredData.T);
+                cv::aruco::drawAxis(img,cameraMatrix,distCoff,MeasuredData.R,MeasuredData.T,10);
+                cv::imshow("pose",img);
+                //cv::accumulate(Rvec,Rvec[0]);
+                //cv::accumulate(Tvec,Tvec[0]);
+                //calPhoto.mean(Rvec);
+                //calPhoto.mean(Tvec);
+                clog<<"Rvec is "<< MeasuredData.R[0]<<endl;
+                clog<<"Distance is "<<MeasuredData.T[0]<<endl;
+                //double x=0.0,y=0.0,z=0.0,distance=0.0;
+                //rotationEstimate(Rvec[0],x,y,z);
+                //distanceEstimate(Tvec[0],distance);
+                int key = cv::waitKey(30);
+                if(32==(uchar)key){
+                    time_t now = time(0);
+                    string t = ctime(&now);
+                    t.pop_back();
+                    t.append(".jpg");
+                    data<<t<<MeasuredData;
+                    cv::imwrite(t,img);
+                }
             }
-            for(int i = 1;i<Rvec.size();i++){
-                cv::accumulate(Rvec[i],Rvec[0]);
-                cv::accumulate(Tvec[i],Tvec[0]);
-            }
-            CalPhoto().mean(Rvec); //pose estimating, get rotation matrix
-            CalPhoto().mean(Tvec); //pose estimating, get transpose matrix
-            double x=0.0,y=0.0,z=0.0,distance=0.0;
-            rotationEstimate(Rvec[0],x,y,z);
-            distanceEstimate(Tvec[0],distance);
         }
     }
     return 0;

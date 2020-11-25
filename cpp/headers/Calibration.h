@@ -12,6 +12,7 @@
 #include <string>
 #include <sstream>
 #include <opencv2/opencv.hpp>
+#include <regex>
 
 using namespace std;
 using namespace cv;
@@ -42,41 +43,41 @@ public:
                 objp.push_back(cv::Point3f(j,i,0));
             }
         }
-
+        regex pattern("\r");
         while(std::getline(fin,filename)){
             image_cnt++;
-            int len = filename.size();
-            filename.replace(filename.begin()+len-1,filename.end(),"");
-            img = imread(filename);
-            filenames.push_back(filename);
-            /*get the width and height of the 1st picture*/
-            if(image_cnt==1){
-                img_size.width = img.cols;
-                img_size.height = img.rows;
-            }
+                int len = filename.size();
+                filename = std::regex_replace(filename,pattern,"");
+                //filename.replace(filename.begin() + len - 1, filename.end(), "");
+                img = imread(filename);
+                filenames.push_back(filename);
+                /*get the width and height of the 1st picture*/
+                if (image_cnt == 1) {
+                    img_size.width = img.cols;
+                    img_size.height = img.rows;
+                }
 
-            /*trying to find the corner points*/
-            bool findChess = cv::findChessboardCorners(img,cv::Size(CHECHBOARD[0],CHECHBOARD[1]),corners);
-            if(!findChess){
+                /*trying to find the corner points*/
+                bool findChess = cv::findChessboardCorners(img, cv::Size(CHECHBOARD[0], CHECHBOARD[1]), corners);
+                if (!findChess) {
 
-                continue;
-                //cout<<"Cannot find any Chessboard";
-                //exit(1);
-            }
-            else{
-                Mat view_gray;
-                cvtColor(img, view_gray, COLOR_RGB2GRAY);
-                cv::TermCriteria criteria = cv::TermCriteria(TermCriteria::EPS | TermCriteria::Type::MAX_ITER, 30, 0.001);
-                cornerSubPix(view_gray, corners, Size(5, 5), Size(-1, -1), criteria);
+                    continue;
+                    //cout<<"Cannot find any Chessboard";
+                    //exit(1);
+                } else {
+                    Mat view_gray;
+                    cvtColor(img, view_gray, COLOR_RGB2GRAY);
+                    cv::TermCriteria criteria = cv::TermCriteria(TermCriteria::EPS | TermCriteria::Type::MAX_ITER, 30,
+                                                                 0.001);
+                    cornerSubPix(view_gray, corners, Size(5, 5), Size(-1, -1), criteria);
 
-                object_point.push_back(objp);
-                image_points_seq.push_back(corners);  // 保存亚像素角点
-                /* 在图像上显示角点位置 */
-                drawChessboardCorners(view_gray, board_size, corners, false); // 用于在图片中标记角点
-                imshow("Camera Calibration", view_gray);       // 显示图片
-                waitKey(500); //暂停0.5S
-            }
-
+                    object_point.push_back(objp);
+                    image_points_seq.push_back(corners);  // 保存亚像素角点
+                    /* 在图像上显示角点位置 */
+                    drawChessboardCorners(view_gray, board_size, corners, false); // 用于在图片中标记角点
+                    imshow("Camera Calibration", view_gray);       // 显示图片
+                    waitKey(100); //暂停0.5S
+                }
         }
         cv::Mat cameraMatrix,distCoff;
         vector<cv::Mat> RotationMatrix,VectorTranscationMatrix;

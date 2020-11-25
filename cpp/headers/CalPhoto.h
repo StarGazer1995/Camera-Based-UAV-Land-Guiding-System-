@@ -39,8 +39,8 @@ class CalPhoto{
 
         }
 
-        void mean(vector<cv::Mat> &input){
-            Mat mask(input[0].rows,input[0].cols,input[0].channels(),Scalar((double)1/input.size()));
+        void mean(vector<cv::Vec3d> &input){
+            Mat mask(input[0].rows,input[0].cols,input[0].channels,Scalar((double)1/input.size()));
             cv::multiply(input[0],mask,input[0]);
         }
 
