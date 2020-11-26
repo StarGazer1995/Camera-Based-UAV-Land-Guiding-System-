@@ -1,13 +1,20 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.13)
 project(specialCourse)
 
 set(CMAKE_CXX_STANDARD 11)
 set(OpenCV_DIR "/usr/local/opencv4/share/opencv4")
 set(aruco_DIR "/usr/local/share/aruco")
+#ser(glog_DIR "/usr/local/")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "cpp/src/")
 add_executable(specialCourse cpp/src/main.cpp cpp/headers/CalPhoto.h cpp/headers/Calibration.h cpp/headers/parameters.h)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(OpenCV REQUIRED)
 find_package(aruco REQUIRED)
+#find_package(glog REQUIRED)
 target_link_libraries(specialCourse ${OpenCV_LIBS})
 target_link_libraries(specialCourse ${aruco_LIBS})
+#target_link_libraries(specialCourse ${glog_LIBS})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin)
