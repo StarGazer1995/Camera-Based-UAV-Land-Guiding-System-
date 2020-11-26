@@ -6,14 +6,18 @@
 #include<opencv2/aruco.hpp>
 #include<vector>
 #include<ctime>
+#include<regex>
 #include "../headers/parameters.h"
 using namespace std;
 using namespace cv;
-static ostream& operator<<(ostream& out,MeasuredData &measuredData){
+/*static ostream& operator<<(ostream& out,MeasuredData &measuredData){
     out<<"{"<<endl;
     out<<"R"<<measuredData.R[0]<<",";
     out<<"T"<<measuredData.T[0]<<"}";
-}
+    return out;
+}*/
+
+
 void generateAruco(){
     Mat marker;
     Mat paper = Mat::ones(2970,2100,CV_8U)*255;
@@ -81,13 +85,13 @@ void arucodecode() {
     cv::VideoCapture cap(0);
     string filename = "../cali/cali.yaml";
     cv::FileStorage cameramatrix(filename, cv::FileStorage::READ);
-    cv::FileStorage data("./data.yaml",cv::FileStorage::WRITE);
     Mat markers;
     Ptr<cv::aruco::Dictionary> dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
     vector<int> markerids;
     vector<vector<cv::Point2f>> coners;
     vector<cv::Vec3d> rvec, tvec;
     MeasuredData MeasuredData;
+    regex pattern(" ");
     cv::Mat cameraMatrix,distCoff;
     cameramatrix["cameraMatrix"]>>cameraMatrix;
     cameramatrix["distCoff"]>>distCoff;
@@ -105,14 +109,18 @@ void arucodecode() {
         }
         int key = cv::waitKey(30);
         if(32==(uchar)key){
-            time_t now = time(0);
-            string t = ctime(&now);
+            string t = GetLocalTimeWithMs();
             t.pop_back();
             t.append(".jpg");
             MeasuredData.R = rvec;
             MeasuredData.T = tvec;
-            data<<t<<MeasuredData;
-            cv::imwrite(t,img);
+            cv::imwrite(t,markers);
+            t=std::regex_replace(t,regex(".jpg"),"");
+            t=std::regex_replace(t,regex(" "),"_");
+            t=std::regex_replace(t,regex(":"),"_");
+            cv::FileStorage data("./data.yaml",cv::FileStorage::APPEND);
+            data<<"time_"+ t <<"{:"<<"Rvec"<<rvec<<"Tvec"<<tvec<<"}";
+            data.release();
         }
     }
     //aruco::detectMarkers(markers,dict,)

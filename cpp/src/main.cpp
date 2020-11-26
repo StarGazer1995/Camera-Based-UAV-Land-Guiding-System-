@@ -14,12 +14,6 @@ void init(){
     Calibration cal;
     cal.CameraCalibration(imgList,caliParameter);
 }
-static ostream& operator<<(ostream& out,MeasuredData &measuredData){
-    out<<"{"<<endl;
-    out<<"R"<<measuredData.R[0]<<",";
-    out<<"T"<<measuredData.T[0]<<"}";
-}
-
 void rotationEstimate(cv::Vec3d &Rvet,double &x,double &y,double &z){
     auto deg = Rvet[2];
     cv::Mat R(3,3,CV_16F);
@@ -90,10 +84,10 @@ int main() {
      */
     clog<<"Do you want to define the landing area(default area is set to the center of the image)[yes/no]"<<endl;
     string ans ="";
-    while(ans!="yes"||ans!="no"){
+    while(!(ans=="yes"||ans=="no")){
         cin>>ans;
     }
-    if(ans=="yes")
+    if(ans=="no")
         clog<<"use the Default Setting"<<endl;
     else{
         clog<<"Starting to find a place to land"<<endl;
@@ -125,13 +119,13 @@ int main() {
                 //double x=0.0,y=0.0,z=0.0,distance=0.0;
                 //rotationEstimate(Rvec[0],x,y,z);
                 //distanceEstimate(Tvec[0],distance);
+                string t = GetLocalTimeWithMs();
+                cv::FileStorage data("./data.yaml",cv::FileStorage::APPEND);
+                data<<"time_"+ t <<"{:"<<"message"<<msg<<"Rvec"<<MeasuredData.R<<"Tvec"<<MeasuredData.T<<"}";
+                data.release();
                 int key = cv::waitKey(30);
                 if(32==(uchar)key){
-                    time_t now = time(0);
-                    string t = ctime(&now);
-                    t.pop_back();
                     t.append(".jpg");
-                    data<<t<<MeasuredData;
                     cv::imwrite(t,img);
                 }
             }
